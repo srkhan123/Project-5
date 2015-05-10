@@ -1,0 +1,77 @@
+// Create Person Nodes 
+	//C:\Users\SR\Documents\IS607\Project5\People.csv
+LOAD CSV WITH HEADERS FROM "file:C:/Users/SR/Documents/IS607/Project5/People.csv" AS Person
+CREATE (n:Person{Name: Person.Name, Title:Person.Title});
+
+//Create Comapany Nodes
+LOAD CSV WITH HEADERS FROM "file:C:/Users/SR/Documents/IS607/Project5/Company.csv" AS Company
+CREATE (m:Company {Name: Company.Company});
+
+//Create Department Node
+LOAD CSV WITH HEADERS FROM "file:C:/Users/SR/Documents/IS607/Project5/Project.csv" AS d
+CREATE (m:Project {Name: d.Name});
+
+//Create Interests Node
+LOAD CSV WITH HEADERS FROM "file:C:/Users/SR/Documents/IS607/Project5/Interests.csv" AS Interests
+CREATE (m:Interests {Name: Interests.Interests});
+
+//-------------------------------------------------------------------------------------------
+
+//Create relationship between People and Company in the past
+LOAD CSV WITH HEADERS FROM "file:C:/Users/SR/Documents/IS607/Project5/Data.csv" AS w
+MATCH (a: Person {Name: w.Name}), (b:Company {Name: w.WorkedAt}) 
+CREATE (a) -[r:WorkedAt]-> (b)
+
+//Create relationship between People and Company 
+LOAD CSV WITH HEADERS FROM "file:C:/Users/SR/Documents/IS607/Project5/Data.csv" AS w
+MATCH (a: Person {Name: w.Name}), (b:Company {Name: w.WorksAt}) 
+CREATE (a) -[r:WorksAt]-> (b)
+
+//Create relationship between People and Company currently
+// WorkedOn x 3
+	LOAD CSV WITH HEADERS FROM "file:C:/Users/SR/Documents/IS607/Project5/Data.csv" AS x
+	MATCH (a: Person {Name: x.Name}), (b:Project {Name: x.WorkedOn1}) 
+	CREATE (a) -[r:WorkedOn]-> (b)
+
+	LOAD CSV WITH HEADERS FROM "file:C:/Users/SR/Documents/IS607/Project5/Data.csv" AS x
+	MATCH (a: Person {Name: x.Name}), (b:Project {Name: x.WorkedOn2}) 
+	CREATE (a) -[r:WorkedOn]-> (b)
+
+	LOAD CSV WITH HEADERS FROM "file:C:/Users/SR/Documents/IS607/Project5/Data.csv" AS x
+	MATCH (a: Person {Name: x.Name}), (b:Project {Name: x.WorkedOn3}) 
+	CREATE (a) -[r:WorkedOn]-> (b)
+// Interests x 2
+	LOAD CSV WITH HEADERS FROM "file:C:/Users/SR/Documents/IS607/Project5/Data.csv" AS x
+	MATCH (a: Person {Name: x.Name}), (b:Interests {Name: x.Interests1}) 
+	CREATE (a) -[r:likes]-> (b)
+
+	LOAD CSV WITH HEADERS FROM "file:C:/Users/SR/Documents/IS607/Project5/Data.csv" AS x
+	MATCH (a: Person {Name: x.Name}), (b:Interests {Name: x.Interests2}) 
+	CREATE (a) -[r:likes]-> (b)
+--------------------------------------
+
+1.	Who works for BMG?
+	MATCH (p:Person) - [n:WorksAt] - (c:Company) where c.Name = 'BMG' 
+	RETURN p, c, n
+----------------------------------------
+
+2) Who worked at Viro
+MATCH (p:Person) - [n:WorksAt] - (c:Company) where c.Name = 'Viro' 
+RETURN p, c, n
+-----------------------------------------
+
+3) What Projects did Dan S work on?
+MATCH (p:Person)-[w:WorkedOn]->(Project) WHERE p.Name = "Dan S"
+RETURN p.Name, w, Project.Name
+---------------------------------------
+
+4) Who has worked on the same projects as Dan S has?
+MATCH (p:Person)-[w:WorkedOn]->(Project) - [y:WorkedOn] - (x:Person) WHERE p.Name = "Dan S"  
+RETURN x.Name, w, y, Project.Name
+
+--------------------------------------------
+
+5) Who are the people who worked with Dan S and also like to Travel?
+
+MATCH (p:Person)-[w:WorkedOn]->(Project) - [y:WorkedOn] - (x:Person) - [i:likes] - (o:Interests) WHERE p.Name = "Dan S"  and o.Name = "Travel"
+RETURN x.Name, w, y, Project.Name, i, o
